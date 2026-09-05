@@ -1,0 +1,11 @@
+Metric,Value
+Total Cases,500
+Total Revenue At Risk,11336950
+Total Revenue Recovered,376350
+Recovery Rate %,3.32
+Successful Recoveries Count,150
+AI Action Accuracy %,85.00
+Risk Level Accuracy %,85.00
+Policy Rejection Rate %,44.00
+Escalation Rate %,41.40
+Stop Rule Violations,0
