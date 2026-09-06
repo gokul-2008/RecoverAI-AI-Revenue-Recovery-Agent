@@ -59,6 +59,22 @@ app.get('/api/health/db', (req, res) => {
 // Enforce database connection check before operational API routes
 app.use('/api', checkDbReadyMiddleware, apiRoutes);
 
+// Serve static frontend assets in production environment if build dist exists
+const path = require('path');
+const fs = require('fs');
+const frontendDistPath = path.join(__dirname, '../../frontend/dist');
+
+if (fs.existsSync(frontendDistPath)) {
+  console.log(`[PRODUCTION] Serving static frontend files from: ${frontendDistPath}`);
+  app.use(express.static(frontendDistPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/health')) {
+      return next();
+    }
+    res.sendFile(path.join(frontendDistPath, 'index.html'));
+  });
+}
+
 // Centralized error handler
 app.use((err, req, res, next) => {
   console.error('[UNHANDLED EXPRESS ERROR]', err);
