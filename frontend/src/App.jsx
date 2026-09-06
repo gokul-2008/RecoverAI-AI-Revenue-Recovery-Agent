@@ -31,8 +31,13 @@ class ErrorBoundary extends Component {
   }
 
   handleReset = () => {
-    localStorage.removeItem('recoverai_token');
-    localStorage.removeItem('recoverai_user');
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch (e) {
+      console.warn('[STORAGE CLEAR ERROR]', e);
+    }
+    this.setState({ hasError: false, error: null });
     window.location.href = '/login';
   };
 
