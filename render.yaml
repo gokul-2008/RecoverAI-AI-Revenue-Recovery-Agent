@@ -2,6 +2,7 @@ services:
   - type: web
     name: recover-ai
     env: node
+    plan: free
     buildCommand: npm run postinstall && npm run build && npm run seed
     startCommand: npm run start
     envVars:
