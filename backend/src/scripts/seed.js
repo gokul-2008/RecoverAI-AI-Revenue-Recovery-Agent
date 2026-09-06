@@ -4,6 +4,7 @@ dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 const { connectDB, isEmbedded } = require('../config/db');
 const { EmbeddedDB } = require('../config/embeddedDb');
+const bcrypt = require('bcryptjs');
 
 const Customer = require('../models/customer.model');
 const RecoveryEngine = require('../services/recovery/engine');
@@ -53,30 +54,48 @@ async function seed() {
   try {
     await connectDB();
 
-    console.log('[SEED] Seeding primary Demo User account...');
+    console.log('[SEED] Seeding primary user accounts...');
     const User = require('../models/user.model');
-    const demoUserData = {
-      name: 'Gokul B',
-      email: 'demo@recoverai.com',
-      username: 'admin',
-      password: 'RecoverAI@123',
-      role: 'Admin'
-    };
+    const defaultUsersData = [
+      {
+        name: 'Gokul B',
+        email: 'gokulbalraj08@gmail.com',
+        username: 'gokul',
+        password: 'gokul_08',
+        role: 'Admin'
+      },
+      {
+        name: 'Gokul B',
+        email: 'demo@recoverai.com',
+        username: 'admin',
+        password: 'RecoverAI@123',
+        role: 'Admin'
+      }
+    ];
 
-    if (isEmbedded()) {
-      EmbeddedDB.upsert('users', demoUserData);
-      console.log(`  ✓ Demo User seeded (Embedded): ${demoUserData.name} (${demoUserData.email})`);
-    } else {
-      let user = await User.findOne({ email: demoUserData.email });
-      if (!user) {
-        user = new User(demoUserData);
-        await user.save();
-        console.log(`  ✓ Demo User created (Mongoose): ${user.name} (${user.email})`);
+    for (const uData of defaultUsersData) {
+      if (isEmbedded()) {
+        const hashedPassword = await bcrypt.hash(uData.password, 10);
+        EmbeddedDB.upsert('users', {
+          name: uData.name,
+          email: uData.email,
+          username: uData.username,
+          password: hashedPassword,
+          role: uData.role
+        });
+        console.log(`  ✓ User seeded (Embedded): ${uData.name} (${uData.email})`);
       } else {
-        user.name = demoUserData.name;
-        user.role = demoUserData.role;
-        await user.save();
-        console.log(`  ✓ Demo User updated (Mongoose): ${user.name} (${user.email})`);
+        let user = await User.findOne({ email: uData.email });
+        if (!user) {
+          user = new User(uData);
+          await user.save();
+          console.log(`  ✓ User created (Mongoose): ${user.name} (${user.email})`);
+        } else {
+          user.name = uData.name;
+          user.role = uData.role;
+          await user.save();
+          console.log(`  ✓ User updated (Mongoose): ${user.name} (${user.email})`);
+        }
       }
     }
 
