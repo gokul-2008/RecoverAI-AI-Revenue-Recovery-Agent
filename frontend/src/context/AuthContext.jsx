@@ -55,28 +55,11 @@ export function AuthProvider({ children }) {
       }
     } catch (err) {
       console.warn('[AUTH] Session verification notice:', err.message);
-
-      if (err.response && err.response.status === 401) {
-        localStorage.removeItem('recoverai_token');
-        localStorage.removeItem('recoverai_user');
-        setUser(null);
-        setIsAuthenticated(false);
-        console.log('[AUTH] session validation result: unauthenticated (cleared session)');
-      } else {
-        if (cachedUser) {
-          setUser(cachedUser);
-          setIsAuthenticated(true);
-          console.log('[AUTH] session validation result: offline cached session');
-        } else if (token) {
-          setUser({ name: 'Gokul B', email: 'demo@recoverai.com', role: 'Admin' });
-          setIsAuthenticated(true);
-          console.log('[AUTH] session validation result: default session');
-        } else {
-          setUser(null);
-          setIsAuthenticated(false);
-          console.log('[AUTH] session validation result: unauthenticated');
-        }
-      }
+      localStorage.removeItem('recoverai_token');
+      localStorage.removeItem('recoverai_user');
+      setUser(null);
+      setIsAuthenticated(false);
+      console.log('[AUTH] session validation result: unauthenticated');
     } finally {
       setLoading(false);
       console.log('[AUTH] initialization completed');
