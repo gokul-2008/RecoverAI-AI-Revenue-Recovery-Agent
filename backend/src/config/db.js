@@ -11,18 +11,55 @@ let isEmbeddedEngine = false;
  * Connect to MongoDB instance or initialize Embedded DB Engine.
  */
 async function connectDB() {
-  const uri = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/recoverai';
+  const isProd = process.env.NODE_ENV === 'production';
+  const uri = process.env.MONGODB_URI || process.env.MONGO_URI;
+
+  if (isProd) {
+    if (!uri) {
+      console.error('\n❌ [FATAL CONFIGURATION ERROR] MONGODB_URI or MONGO_URI environment variable is missing.');
+      console.error('👉 Embedded MongoDB fallback is disabled in production mode.');
+      console.error('👉 Please configure MONGODB_URI in your Render environment variables to connect to MongoDB Atlas.\n');
+      throw new Error('MONGODB_URI environment variable is required for production deployment on Render.');
+    }
+
+    const maskedUri = uri.includes('@') 
+      ? uri.replace(/:([^@]+)@/, ':****@')
+      : uri;
+
+    console.log(`[PRODUCTION] Connecting to MongoDB Atlas (${maskedUri})...`);
+
+    try {
+      const conn = await mongoose.connect(uri, {
+        serverSelectionTimeoutMS: 5000,
+        connectTimeoutMS: 5000,
+      });
+
+      dbStateConnected = true;
+      isEmbeddedEngine = false;
+      console.log(`[PRODUCTION] MongoDB connected successfully to MongoDB Atlas`);
+      console.log(`👉 Database: ${conn.connection.name}`);
+      console.log(`👉 Host: ${conn.connection.host}`);
+      return conn;
+    } catch (err) {
+      console.error(`❌ [PRODUCTION DB ERROR] Failed to connect to MongoDB Atlas: ${err.message}`);
+      dbStateConnected = false;
+      isEmbeddedEngine = false;
+      throw err;
+    }
+  }
+
+  // Development Mode (Local development or fallback)
+  const devUri = uri || 'mongodb://127.0.0.1:27017/recoverai';
   const dbName = 'recoverai';
 
-  const maskedUri = uri.includes('@') 
-    ? uri.replace(/:([^@]+)@/, ':****@')
-    : uri;
+  const maskedUri = devUri.includes('@') 
+    ? devUri.replace(/:([^@]+)@/, ':****@')
+    : devUri;
 
-  console.log(`Connecting to MongoDB (${maskedUri})...`);
+  console.log(`[DEVELOPMENT] Connecting to MongoDB (${maskedUri})...`);
 
-  // 1. Try real Mongoose connection first (3-second timeout)
   try {
-    const conn = await mongoose.connect(uri, {
+    const conn = await mongoose.connect(devUri, {
       dbName: dbName,
       serverSelectionTimeoutMS: 2000,
       connectTimeoutMS: 2000,
@@ -30,18 +67,18 @@ async function connectDB() {
 
     dbStateConnected = true;
     isEmbeddedEngine = false;
-    console.log(`MongoDB connected successfully`);
+    console.log(`[DEVELOPMENT] MongoDB connected successfully`);
     console.log(`👉 Database: ${conn.connection.name}`);
     console.log(`👉 Host: ${conn.connection.host}:${conn.connection.port || 'default'}`);
     return conn;
   } catch (primaryError) {
-    console.warn(`[DATABASE] Standalone MongoDB service not active on port 27017.`);
-    console.log(`[DATABASE] Activating Embedded MongoDB Engine...`);
+    console.warn(`[DEVELOPMENT] Standalone MongoDB service not active on local port 27017.`);
+    console.log(`[DEVELOPMENT] Activating Local Embedded MongoDB Engine...`);
     
     dbStateConnected = true;
     isEmbeddedEngine = true;
 
-    console.log(`MongoDB connected successfully (Embedded Engine)`);
+    console.log(`[DEVELOPMENT] MongoDB connected successfully (Embedded Engine)`);
     console.log(`👉 Database: recoverai`);
     return { connection: { name: 'recoverai', host: 'embedded-engine', port: 'in-memory' } };
   }
@@ -55,9 +92,12 @@ function isConnected() {
 }
 
 /**
- * Check if running embedded engine.
+ * Check if running embedded engine (Disabled in production mode).
  */
 function isEmbedded() {
+  if (process.env.NODE_ENV === 'production') {
+    return false;
+  }
   return isEmbeddedEngine || mongoose.connection.readyState !== 1;
 }
 

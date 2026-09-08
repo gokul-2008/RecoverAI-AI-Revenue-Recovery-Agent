@@ -22,11 +22,13 @@ async function startServer() {
     // Error is logged by connectDB
   }
 
-  // Pre-run evaluation dataset generator if missing
-  try {
-    evaluate();
-  } catch (evalErr) {
-    console.warn('[EVALUATION] Dataset initialization warning:', evalErr.message);
+  // Run evaluation dataset generator only in development mode (disabled in production)
+  if (process.env.NODE_ENV !== 'production') {
+    try {
+      evaluate();
+    } catch (evalErr) {
+      console.warn('[EVALUATION] Dataset initialization warning:', evalErr.message);
+    }
   }
 
   const rzpConfigured = RazorpayService.isConfigured();
@@ -41,12 +43,15 @@ async function startServer() {
     rzpAuthResult = await RazorpayService.verifyAuthentication();
   }
 
+  const baseUrl = (process.env.BACKEND_URL || process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`).trim().replace(/\/$/, '');
+
   const server = app.listen(PORT, () => {
     console.log(`====================================================`);
     console.log(`Server running on port ${PORT}`);
+    console.log(`👉 Node Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`👉 Database Status: ${dbConnected ? 'connected' : 'disconnected'}`);
-    console.log(`👉 REST API Base URL: http://localhost:${PORT}/api`);
-    console.log(`👉 Razorpay Webhook URL: http://localhost:${PORT}/api/webhooks/razorpay`);
+    console.log(`👉 REST API Base URL: ${baseUrl}/api`);
+    console.log(`👉 Razorpay Webhook URL: ${baseUrl}/api/webhooks/razorpay`);
     console.log(``);
     if (rzpConfigured) {
       if (rzpAuthResult.authenticated) {

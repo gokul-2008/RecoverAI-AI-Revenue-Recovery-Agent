@@ -92,15 +92,17 @@ The server will start on port 5000, serving the REST API under `/api/*` and the 
 
 | Variable | Description | Required / Fallback |
 | :--- | :--- | :--- |
-| `PORT` | HTTP Server Port (default `5000`) | Optional |
-| `NODE_ENV` | Set to `production` | Highly Recommended |
-| `JWT_SECRET` | Secret key for JWT signing | Recommended |
-| `MONGODB_URI` | MongoDB Atlas Connection String | Optional (falls back to Embedded DB) |
+| `PORT` | HTTP Server Port (provided automatically by Render) | Required on Render (default `5000` locally) |
+| `NODE_ENV` | Set to `production` | Required in Production |
+| `MONGODB_URI` | MongoDB Atlas Connection String (`mongodb+srv://...`) | **Required on Render** (Embedded DB disabled in prod) |
+| `FRONTEND_URL` | Deployed Frontend URL (e.g. `https://recover-ai-seven-beige.vercel.app`) | Recommended for CORS & Razorpay Callbacks |
+| `BACKEND_URL` | Deployed Backend URL (e.g. `https://recover-ai.onrender.com`) | Recommended for Webhook & Payment Link URLs |
+| `JWT_SECRET` | Secret key for JWT session signing | Required |
 | `GEMINI_API_KEY` | Google Gemini API Key | Optional (falls back to Rule Engine) |
 | `AI_PROVIDER` | `GEMINI` or `MOCK` | Optional (default `MOCK`) |
-| `RAZORPAY_KEY_ID` | Razorpay Test Key ID | Recommended for live test links |
-| `RAZORPAY_KEY_SECRET` | Razorpay Test Key Secret | Recommended for live test links |
-| `RAZORPAY_WEBHOOK_SECRET` | Razorpay Webhook Secret | Recommended for signature validation |
+| `RAZORPAY_KEY_ID` | Razorpay Test Key ID (`rzp_test_...`) | Required for Razorpay links |
+| `RAZORPAY_KEY_SECRET` | Razorpay Test Key Secret | Required for Razorpay links |
+| `RAZORPAY_WEBHOOK_SECRET` | Razorpay Webhook Secret | Required for Webhook verification |
 
 ---
 

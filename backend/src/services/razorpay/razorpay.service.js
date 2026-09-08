@@ -74,10 +74,13 @@ class RazorpayService {
     const rawPhone = String(customerData?.phone || '9876543210').replace(/\D/g, '');
     const formattedPhone = rawPhone.length >= 10 ? rawPhone.slice(-10) : '9876543210';
 
+    const backendBaseUrl = (process.env.BACKEND_URL || process.env.RENDER_EXTERNAL_URL || 'http://localhost:5000').trim().replace(/\/$/, '');
+    const frontendBaseUrl = (process.env.FRONTEND_URL || 'http://localhost:5173').trim().replace(/\/$/, '');
+
     if (isDemo) {
       console.log('[RAZORPAY DEMO] Operating in Demo Mode. Using simulated Razorpay payment link.');
       const mockLinkId = `plink_mock_${Math.random().toString(36).substring(2, 11)}`;
-      const shortUrl = `http://localhost:5000/api/demo/pay-simulate/${mockLinkId}`;
+      const shortUrl = `${backendBaseUrl}/api/demo/pay-simulate/${mockLinkId}`;
       return {
         id: mockLinkId,
         status: 'created',
@@ -94,7 +97,7 @@ class RazorpayService {
     }
 
     if (!this.isConfigured()) {
-      throw new Error('Razorpay Test Mode requires valid credentials. Please set RAZORPAY_KEY_ID (starting with rzp_test_) and RAZORPAY_KEY_SECRET in backend/.env.');
+      throw new Error('Razorpay Test Mode requires valid credentials. Please set RAZORPAY_KEY_ID (starting with rzp_test_) and RAZORPAY_KEY_SECRET in environment variables.');
     }
 
     try {
@@ -120,7 +123,7 @@ class RazorpayService {
         notes: {
           caseId: caseId
         },
-        callback_url: `http://localhost:5173/cases/${caseId}?payment=success`,
+        callback_url: `${frontendBaseUrl}/cases/${caseId}?payment=success`,
         callback_method: 'get'
       };
 

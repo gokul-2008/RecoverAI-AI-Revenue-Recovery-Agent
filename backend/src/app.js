@@ -12,11 +12,18 @@ app.use(helmet({
   contentSecurityPolicy: false // Disable CSP for local sandbox scripts
 }));
 
-// CORS configuration
+// Production CORS configuration enforcing FRONTEND_URL
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? (process.env.FRONTEND_URL 
+      ? process.env.FRONTEND_URL.split(',').map(url => url.trim().replace(/\/$/, '')) 
+      : ['https://recover-ai-seven-beige.vercel.app'])
+  : '*';
+
 app.use(cors({
-  origin: '*',
+  origin: allowedOrigins,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-razorpay-signature']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-razorpay-signature'],
+  credentials: true
 }));
 
 // Middleware to parse JSON and preserve raw body for Razorpay webhook verification
