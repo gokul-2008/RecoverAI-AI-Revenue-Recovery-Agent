@@ -7,12 +7,36 @@ mongoose.set('bufferCommands', false);
 let dbStateConnected = false;
 let isEmbeddedEngine = false;
 
+function sanitizeMongoUri(rawUri) {
+  if (!rawUri) return rawUri;
+  try {
+    const parts = rawUri.split('://');
+    if (parts.length === 2 && parts[1].includes('@')) {
+      const atIndex = parts[1].lastIndexOf('@');
+      const creds = parts[1].substring(0, atIndex);
+      const hostPath = parts[1].substring(atIndex + 1);
+      
+      const colonIndex = creds.indexOf(':');
+      if (colonIndex !== -1) {
+        const user = creds.substring(0, colonIndex);
+        const pass = creds.substring(colonIndex + 1);
+        const encodedPass = encodeURIComponent(decodeURIComponent(pass));
+        return `${parts[0]}://${user}:${encodedPass}@${hostPath}`;
+      }
+    }
+  } catch (e) {
+    // Return original rawUri on error
+  }
+  return rawUri;
+}
+
 /**
  * Connect to MongoDB instance or initialize Embedded DB Engine.
  */
 async function connectDB() {
   const isProd = process.env.NODE_ENV === 'production';
-  const uri = process.env.MONGODB_URI || process.env.MONGO_URI;
+  const rawUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+  const uri = sanitizeMongoUri(rawUri);
 
   if (isProd) {
     if (!uri) {
