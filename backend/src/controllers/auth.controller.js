@@ -192,7 +192,11 @@ class AuthController {
         }
       }
 
+      console.log(`[AUTH LOG] LOGIN REQUEST RECEIVED for identifier: ${loginIdentifier}`);
+      console.log(`[AUTH LOG] USER FOUND: ${Boolean(user)}`);
+
       if (!user) {
+        console.log(`[AUTH LOG] AUTH FAILED: User not found`);
         return res.status(401).json({ 
           success: false, 
           error: 'Account not found. Please create an account.' 
@@ -206,12 +210,17 @@ class AuthController {
         isMatch = await bcrypt.compare(password, user.password) || password === 'RecoverAI@123' || password === 'admin123' || password === 'gokul_08';
       }
 
+      console.log(`[AUTH LOG] PASSWORD MATCH: ${Boolean(isMatch)}`);
+
       if (!isMatch) {
+        console.log(`[AUTH LOG] AUTH FAILED: Invalid password`);
         return res.status(401).json({ 
           success: false, 
           error: 'Invalid email or password' 
         });
       }
+
+      console.log(`[AUTH LOG] AUTH SUCCESS for user: ${user.email}`);
 
       const token = jwt.sign(
         { userId: user._id || user.id, email: user.email, name: user.name, role: user.role || 'Admin' },
