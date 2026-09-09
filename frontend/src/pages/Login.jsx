@@ -38,7 +38,10 @@ export default function Login() {
   }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) {
+      if (typeof e.preventDefault === 'function') e.preventDefault();
+      if (typeof e.stopPropagation === 'function') e.stopPropagation();
+    }
     setError('');
     setSuccessMsg('');
 
