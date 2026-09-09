@@ -60,11 +60,23 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await api.post('/auth/login', {
+      let res;
+      const payload = {
         email: trimmedEmail,
         username: trimmedEmail,
         password: password
-      });
+      };
+
+      try {
+        res = await api.post('/auth/login', payload);
+      } catch (firstErr) {
+        if (firstErr.response && firstErr.response.status === 404) {
+          console.warn('[FRONTEND LOGIN] /auth/login returned 404, retrying with /login endpoint...');
+          res = await api.post('/login', payload);
+        } else {
+          throw firstErr;
+        }
+      }
 
       if (res.data && res.data.token) {
         authLogin(res.data.token, res.data.user);

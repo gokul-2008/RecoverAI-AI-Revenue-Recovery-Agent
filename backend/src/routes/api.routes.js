@@ -18,8 +18,11 @@ const { requireAuth } = require('../middleware/auth.middleware');
 
 // Public Auth routes
 router.post('/auth/login', AuthController.login);
+router.post('/login', AuthController.login);
 router.post('/auth/register', AuthController.register);
+router.post('/register', AuthController.register);
 router.get('/auth/me', requireAuth, AuthController.getMe);
+router.get('/me', requireAuth, AuthController.getMe);
 
 // Razorpay Webhooks (Public callback)
 router.post('/webhooks/razorpay', WebhookController.receiveWebhook);
