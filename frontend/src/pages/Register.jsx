@@ -40,7 +40,10 @@ export default function Register() {
   }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) {
+      if (typeof e.preventDefault === 'function') e.preventDefault();
+      if (typeof e.stopPropagation === 'function') e.stopPropagation();
+    }
     setError('');
     setSuccessMsg('');
 
@@ -75,11 +78,23 @@ export default function Register() {
     setLoading(true);
 
     try {
-      const res = await api.post('/auth/register', {
+      let res;
+      const payload = {
         name: trimmedName,
         email: trimmedEmail,
         password: password
-      });
+      };
+
+      try {
+        res = await api.post('/auth/register', payload);
+      } catch (firstErr) {
+        if (firstErr.response && firstErr.response.status === 404) {
+          console.warn('[FRONTEND REGISTER] /auth/register returned 404, retrying with /register endpoint...');
+          res = await api.post('/register', payload);
+        } else {
+          throw firstErr;
+        }
+      }
 
       if (res.data && res.data.token) {
         authLogin(res.data.token, res.data.user);
