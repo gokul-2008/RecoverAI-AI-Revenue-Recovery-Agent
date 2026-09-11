@@ -10,6 +10,9 @@
     "dev:backend": "npm --prefix backend run dev",
     "dev:frontend": "npm --prefix frontend run dev"
   },
+  "dependencies": {
+    "vite": "^5.2.8"
+  },
   "keywords": [
     "razorpay",
     "ai",

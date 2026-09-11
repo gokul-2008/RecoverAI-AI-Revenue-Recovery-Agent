@@ -4,7 +4,7 @@ const path = require('path');
 try {
   const frontendDir = path.join(__dirname, '../frontend');
   console.log('[BUILD] Building Vite production bundle into dist...');
-  execSync('npx vite build --outDir ../dist --emptyOutDir', { cwd: frontendDir, stdio: 'inherit', shell: true });
+  execSync('npm --prefix frontend run build -- --outDir ../dist --emptyOutDir', { stdio: 'inherit' });
   console.log('[BUILD] Production build completed successfully!');
 } catch (err) {
   console.error('[BUILD ERROR]', err.message);
